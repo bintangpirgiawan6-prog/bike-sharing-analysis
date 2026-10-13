@@ -2,6 +2,13 @@
 
 Dashboard interaktif untuk menganalisis pola penyewaan sepeda berdasarkan jam, status hari kerja, dan kondisi cuaca selama periode Januari 2011 hingga Desember 2012.
 
+
+## 🔗 Dashboard Online
+
+Dashboard interaktif dapat diakses melalui tautan berikut:
+[**Bike Sharing Dashboard**](https://bike-sharing-analysis-bintangpirgiawan.streamlit.app/)
+
+
 ## Pertanyaan Bisnis
 
 1. Bagaimana pola jumlah penyewaan sepeda berdasarkan jam dan status hari kerja?
@@ -52,7 +59,7 @@ pip install -r requirements.txt
 Pastikan terminal berada di folder utama proyek dan environment sudah aktif. Jalankan dashboard menggunakan perintah:
 
 ```bash
-streamlit run dashboard/dashboard.py
+streamlit run dashboard.py
 ```
 
 Setelah aplikasi berjalan, buka alamat lokal yang muncul di terminal, biasanya `http://localhost:8501`.
@@ -66,13 +73,11 @@ Setelah aplikasi berjalan, buka alamat lokal yang muncul di terminal, biasanya `
 ## Struktur Folder
 
 ```text
-submission/
-├── dashboard/
-│   ├── dashboard.py
-│   └── main_data.csv
-├── data/
-│   ├── day.csv
-│   └── hour.csv
+bike-sharing-analysis/
+├── dashboard.py
+├── day.csv
+├── hour.csv
+├── main_data.csv
 ├── notebook.ipynb
 ├── README.md
 ├── requirements.txt
@@ -88,12 +93,13 @@ submission/
 - Streamlit
 - Jupyter Notebook
 
+
 ## Project Files
 
-- `dashboard/dashboard.py` — Kode aplikasi dashboard Streamlit.
-- `dashboard/main_data.csv` — Dataset yang digunakan dashboard.
-- `data/day.csv` — Dataset penyewaan sepeda harian.
-- `data/hour.csv` — Dataset penyewaan sepeda per jam.
+- `dashboard.py` — Kode aplikasi dashboard Streamlit.
+- `main_data.csv` — Dataset gabungan yang digunakan dashboard.
+- `day.csv` — Dataset penyewaan sepeda harian.
+- `hour.csv` — Dataset penyewaan sepeda per jam.
 - `notebook.ipynb` — Notebook proses analisis data.
 - `requirements.txt` — Daftar library Python yang diperlukan.
 - `url.txt` — File informasi tautan proyek.
