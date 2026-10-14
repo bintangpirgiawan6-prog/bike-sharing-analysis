@@ -1,4 +1,3 @@
-
 import streamlit as st
 import pandas as pd
 import plotly.express as px
@@ -337,29 +336,40 @@ div[data-testid="stTabs"] button[aria-selected="true"] {
 
 @st.cache_data
 def load_data():
-    possible_paths = [
-        Path("day.csv"),
-        Path("main_data.csv"),
-        Path("data/day.csv"),
-        Path("../data/day.csv"),
-        Path("dashboard/main_data.csv"),
-        Path(__file__).resolve().parent / "day.csv",
-        Path(__file__).resolve().parent / "main_data.csv",
-        Path(__file__).resolve().parent.parent / "data" / "day.csv"
+    base_path = Path(__file__).resolve().parent
+
+    day_paths = [
+        base_path / "data" / "day.csv",
+        base_path / "day.csv",
+        base_path / "main_data.csv",
+        base_path.parent / "data" / "day.csv",
     ]
 
-    for path in possible_paths:
-        if path.exists():
-            return pd.read_csv(path)
+    hour_paths = [
+        base_path / "data" / "hour.csv",
+        base_path / "hour.csv",
+        base_path.parent / "data" / "hour.csv",
+    ]
 
-    raise FileNotFoundError(
-        "Dataset tidak ditemukan. Letakkan day.csv atau main_data.csv "
-        "di folder dashboard, atau day.csv di folder data."
-    )
+    day_path = next((p for p in day_paths if p.exists()), None)
+    hour_path = next((p for p in hour_paths if p.exists()), None)
 
+    if day_path is None:
+        raise FileNotFoundError("File day.csv tidak ditemukan.")
+
+    if hour_path is None:
+        raise FileNotFoundError("File hour.csv tidak ditemukan.")
+
+    day_df = pd.read_csv(day_path)
+    hour_df = pd.read_csv(hour_path)
+
+    day_df["dteday"] = pd.to_datetime(day_df["dteday"])
+    hour_df["dteday"] = pd.to_datetime(hour_df["dteday"])
+
+    return day_df, hour_df
 
 try:
-    df = load_data()
+    df, hour_df = load_data()
 except FileNotFoundError as error:
     st.error(str(error))
     st.stop()
@@ -670,6 +680,66 @@ with tab1:
         style_chart(fig_daily, 390)
         st.plotly_chart(fig_daily, use_container_width=True)
         st.markdown("</div>", unsafe_allow_html=True)
+
+    st.markdown("""
+    <div class="section-head">
+        <h2>Hourly Rental Pattern</h2>
+        <span>Pola penyewaan berdasarkan jam</span>
+    </div>
+    """, unsafe_allow_html=True)
+
+
+    filtered_hour_df = hour_df[
+        hour_df["yr"].map({0: "2011", 1: "2012"}).isin(selected_years)
+        & hour_df["mnth"].map(month_names).isin(selected_months)
+        & hour_df["season"].map(season_names).isin(selected_seasons)
+    ].copy()
+
+    if filtered_hour_df.empty:
+        st.info("Tidak ada data per jam untuk filter yang dipilih.")
+    else:
+           hourly = (
+        filtered_hour_df.groupby(["hr", "workingday"], as_index=False)["cnt"]
+        .mean()
+    )
+
+    hourly["Status Hari"] = hourly["workingday"].map({
+        0: "Hari Libur/Akhir Pekan",
+        1: "Hari Kerja"
+    })
+
+    fig_hourly = px.line(
+        hourly,
+        x="hr",
+        y="cnt",
+        color="Status Hari",
+        markers=True,
+        color_discrete_map={
+            "Hari Libur/Akhir Pekan": "#a78bfa",
+            "Hari Kerja": "#55e6ff"
+        }
+    )
+
+    fig_hourly.update_traces(
+        line=dict(width=3),
+        marker=dict(size=6)
+    )
+
+    fig_hourly.update_layout(
+        xaxis_title="Jam",
+        yaxis_title="Rata-rata Penyewaan",
+        xaxis=dict(
+            tickmode="linear",
+            dtick=1,
+            range=[0, 23]
+        ),
+        showlegend=True,
+        legend_title_text="Status Hari"
+    )
+
+    style_chart(fig_hourly, 390)
+    st.plotly_chart(fig_hourly, use_container_width=True)
+
 
     if not monthly.empty:
         peak_month = monthly.loc[monthly["cnt"].idxmax()]
